@@ -32,29 +32,29 @@ class Value < Struct
       optional_args.each_key { |arg| arguments[arg] = false }
       validate_names(*arguments.keys)
 
-      clazz = super(*arguments.keys, &block)
-      clazz.__save_constructor_defaults(optional_args)
+      clazz = super(*arguments.keys)
 
-      constructor_source = generate_constructor(arguments)
-      clazz.class_eval(constructor_source)
+      # define class and instance methods in modules so that the class can
+      # override them
+      keyword_constructor = generate_keyword_constructor(arguments)
+      class_method_module = Module.new do
+        module_eval(keyword_constructor)
+        define_method(:__constructor_default) do |name|
+          optional_args.fetch(name)
+        end
+      end
+      clazz.extend(class_method_module)
 
-      keyword_constructor_source = generate_keyword_constructor(arguments)
-      clazz.instance_eval(keyword_constructor_source)
+      constructor = generate_constructor(arguments)
+      instance_method_module = Module.new do
+        module_eval(constructor)
+      end
+      clazz.include(instance_method_module)
+
+      # Evaluate the block in the context of the class
+      clazz.class_eval(&block) if block_given?
 
       clazz
-    end
-
-    def __constructor_default(name)
-      @__constructor_defaults.fetch(name)
-    end
-
-    protected
-
-    def __save_constructor_defaults(optional_args)
-      if instance_variable_defined?(:@defaults)
-        raise ArgumentError.new("Already initialized!")
-      end
-      @__constructor_defaults = optional_args.dup.freeze
     end
 
     private
@@ -73,7 +73,7 @@ class Value < Struct
     #
     # For a SafeStruct.new(:a, b: x), will define the method:
     #
-    # def initialize(a:, b: self.class.__constructor_default(:b))
+    # def initialize(a, b = self.class.__constructor_default(:b))
     #   super(a, b)
     #   freeze
     # end
@@ -100,7 +100,7 @@ class Value < Struct
     #
     # For a SafeStruct.new(:a, b: x), will define the (class) method:
     #
-    # def with(a:, b: self.class.__constructor_default(:b))
+    # def with(a:, b: __constructor_default(:b))
     #   self.new(a, b)
     # end
     def generate_keyword_constructor(arguments)
