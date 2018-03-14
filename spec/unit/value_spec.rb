@@ -38,7 +38,7 @@ RSpec.describe Value do
 
     it "is immutable" do
       v = value.new(1, 2)
-      expect { v.a = 10 }.to raise_error(FrozenError)
+      expect { v.a = 10 }.to raise_error(RuntimeError, /can't modify frozen/)
     end
 
     it "can be mutated after duplicating" do
