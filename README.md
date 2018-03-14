@@ -1,4 +1,5 @@
 # SafeValues
+[![Build Status](https://travis-ci.org/iknow/safe_values.svg?branch=master)](https://travis-ci.org/iknow/safe_values)
 
 `Value` generates `Struct` classes with safer constructors. It is designed to
 provide a superset of the interface of the `Values` gem, with better
