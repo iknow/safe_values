@@ -1,0 +1,13 @@
+dist: trusty
+sudo: false
+language: ruby
+cache: bundler
+rvm:
+  - 2.4
+  - 2.5
+before_install:
+  # Travis' Ruby 2.5.0 ships broken rubygems, won't run rake.
+  # Workaround: update rubygems. See travis-ci issue 8978
+  - gem update --system
+notifications:
+  email: false
