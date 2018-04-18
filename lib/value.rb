@@ -71,7 +71,7 @@ class Value < Struct
     # delegating to the Struct constructor. Parameter names must have already
     # been validated.
     #
-    # For a SafeStruct.new(:a, b: x), will define the method:
+    # For a Value.new(:a, b: x), will define the method:
     #
     # def initialize(a, b = self.class.__constructor_default(:b))
     #   super(a, b)
@@ -98,7 +98,7 @@ class Value < Struct
     # for required and optional parameters, delegating to the generated
     # constructor. Parameter names must have already been validated.
     #
-    # For a SafeStruct.new(:a, b: x), will define the (class) method:
+    # For a Value.new(:a, b: x), will define the (class) method:
     #
     # def with(a:, b: __constructor_default(:b))
     #   self.new(a, b)
