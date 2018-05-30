@@ -32,7 +32,7 @@ class Value < Struct
       optional_args.each_key { |arg| arguments[arg] = false }
       validate_names(*arguments.keys)
 
-      clazz = super(*arguments.keys)
+      clazz = super(*arguments.keys, &nil)
 
       # define class and instance methods in modules so that the class can
       # override them
