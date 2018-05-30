@@ -79,6 +79,12 @@ RSpec.describe Value do
   context "with a class body" do
     let(:value) do
       Value.new(:a) do
+        @calls = (@calls || 0) + 1
+
+        def self.calls
+          @calls
+        end
+
         def initialize(a)
           raise ArgumentError.new("not even") unless a.even?
           super
@@ -98,6 +104,10 @@ RSpec.describe Value do
       v = value.new(2)
       expect(v.a).to eq(2)
       expect(v.b).to eq(3)
+    end
+
+    it "only invokes the class body once" do
+      expect(value.calls).to eq(1)
     end
   end
 end
