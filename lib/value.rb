@@ -120,8 +120,8 @@ class Value < Struct
     end
   end
 
-  def with(hash = {})
-    return self if hash.empty?
-    self.class.with(to_h.merge(hash))
+  def with(**kwargs)
+    return self if kwargs.empty?
+    self.class.with(**to_h.merge(kwargs))
   end
 end

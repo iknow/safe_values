@@ -86,6 +86,12 @@ workflows:
       - test:
           name: 'ruby 2.6'
           ruby-version: "2.6"
+      - test:
+          name: 'ruby 2.7'
+          ruby-version: "2.7"
+      - test:
+          name: 'ruby 3.0'
+          ruby-version: "3.0"
       - publish:
           filters:
             branches:

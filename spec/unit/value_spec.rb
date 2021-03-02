@@ -46,6 +46,12 @@ RSpec.describe Value do
       v.a = 10
       expect(v.a).to eq(10)
     end
+
+    it "can update values via .with" do
+      v = value.new(1, 2).with(a: 10)
+      expect(v.a).to eq(10)
+      expect(v.b).to eq(2)
+    end
   end
 
   context "with optional arguments" do
@@ -64,6 +70,14 @@ RSpec.describe Value do
       expect(v.a).to eq(1)
       expect(v.b).to eq(2)
       expect(v.c).to eq(3)
+      expect(v.d).to eq(40)
+    end
+
+    it "can update values via .with" do
+      v = value.new(10, 20, 30, 40).with(a: 11, c: 31)
+      expect(v.a).to eq(11)
+      expect(v.b).to eq(20)
+      expect(v.c).to eq(31)
       expect(v.d).to eq(40)
     end
 
