@@ -13,7 +13,9 @@
 # `ValueType = Value.new(:a, :b, c: default_value)`. The default values to
 # optional arguments are saved at class creation time and supplied as default
 # constructor arguments to instances. Default values are aliased, so providing
-# mutable defaults is discouraged.
+# mutable defaults is discouraged. Lazily-evaluated defaults can be provided by
+# supplying `Value.lazy { ... }` as a default. The lazy block will be evaluated
+# at each instantiation time.
 #
 # Two instance constructors are provided, with positional and keyword arguments.
 #
@@ -25,6 +27,8 @@
 # Value types may be constructed with keyword arguments using `with`.
 # For example: `ValueType.with(a: 1, b: 2, c: 3)`
 class Value < Struct
+  LazyDefault = Struct.new(:proc)
+
   class << self
     def new(*required_args, **optional_args, &block)
       arguments = {}
@@ -39,8 +43,14 @@ class Value < Struct
       keyword_constructor = generate_keyword_constructor(arguments)
       class_method_module = Module.new do
         module_eval(keyword_constructor)
-        define_method(:__constructor_default) do |name|
-          optional_args.fetch(name)
+
+        optional_args.each do |name, value|
+          method_name = :"__constructor_default_#{name}"
+          if value.is_a?(LazyDefault)
+            define_method(method_name, &value.proc)
+          else
+            define_method(method_name) { value }
+          end
         end
       end
       clazz.extend(class_method_module)
@@ -55,6 +65,10 @@ class Value < Struct
       clazz.class_eval(&block) if block_given?
 
       clazz
+    end
+
+    def lazy(&proc)
+      LazyDefault.new(proc)
     end
 
     private
@@ -73,7 +87,7 @@ class Value < Struct
     #
     # For a Value.new(:a, b: x), will define the method:
     #
-    # def initialize(a, b = self.class.__constructor_default(:b))
+    # def initialize(a, b = self.class.__constructor_default_b)
     #   super(a, b)
     #   freeze
     # end
@@ -82,7 +96,7 @@ class Value < Struct
         if required
           arg_name
         else
-          "#{arg_name} = self.class.__constructor_default(:#{arg_name})"
+          "#{arg_name} = self.class.__constructor_default_#{arg_name}"
         end
       end
 
@@ -100,7 +114,7 @@ class Value < Struct
     #
     # For a Value.new(:a, b: x), will define the (class) method:
     #
-    # def with(a:, b: __constructor_default(:b))
+    # def with(a:, b: __constructor_default_b)
     #   self.new(a, b)
     # end
     def generate_keyword_constructor(arguments)
@@ -108,7 +122,7 @@ class Value < Struct
         if required
           "#{arg_name}:"
         else
-          "#{arg_name}: __constructor_default(:#{arg_name})"
+          "#{arg_name}: __constructor_default_#{arg_name}"
         end
       end
 

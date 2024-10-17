@@ -90,6 +90,33 @@ RSpec.describe Value do
     end
   end
 
+  context "with lazy defaults" do
+    let(:next_value) do
+      x = 0
+      ->() { x += 1 }
+    end
+
+    let(:value) { Value.new(a: Value.lazy(&next_value)) }
+
+    it "can construct an instance with positional lazy arguments" do
+      v = value.new
+      expect(v.a).to eq(1)
+      v = value.new
+      expect(v.a).to eq(2)
+      v = value.new(-1)
+      expect(v.a).to eq(-1)
+    end
+
+    it "can construct an instance with keyword lazy arguments" do
+      v = value.with()
+      expect(v.a).to eq(1)
+      v = value.with()
+      expect(v.a).to eq(2)
+      v = value.with(a: -1)
+      expect(v.a).to eq(-1)
+    end
+  end
+
   context "with a class body" do
     let(:value) do
       Value.new(:a) do
